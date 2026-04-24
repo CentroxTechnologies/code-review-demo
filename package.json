@@ -1,0 +1,13 @@
+{
+  "name": "code-review-demo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sample repo for the Centrox code review pipeline",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
