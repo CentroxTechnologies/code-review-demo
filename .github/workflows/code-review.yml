@@ -1,0 +1,40 @@
+name: Code Review
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Clone guidelines
+        run: git clone "$GUIDELINES_REPO_URL" /tmp/guidelines
+        env:
+          GUIDELINES_REPO_URL: ${{ secrets.GUIDELINES_REPO_URL }}
+
+      - name: Run code review
+        run: cd /tmp/guidelines && bash ci/scripts/run-review.sh
+        env:
+          REVIEW_LLM_PROVIDER: ${{ secrets.REVIEW_LLM_PROVIDER }}
+          REVIEW_LLM_API_KEY: ${{ secrets.REVIEW_LLM_API_KEY }}
+          REVIEW_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GUIDELINES_REPO_PATH: /tmp/guidelines
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: review-result
+          path: review-result.json
+          retention-days: 90
