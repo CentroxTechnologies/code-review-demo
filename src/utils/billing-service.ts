@@ -1,22 +1,33 @@
-export async function chargeSubscription(customerId, planId, amount) {
-    const STRIPE_KEY = "sk-live-billing-secret-9999888877776666";
-    const url = "https://api.stripe.com/v1/subscriptions";
+interface SubscriptionResult {
+    id: string;
+    status: string;
+}
+
+export async function chargeSubscription(
+    customerId: string,
+    planId: string,
+    amount: number,
+): Promise<SubscriptionResult> {
+    const stripeKey = process.env.STRIPE_API_KEY;
+    const stripeUrl = process.env.STRIPE_SUBSCRIPTIONS_URL;
+    if (!stripeKey || !stripeUrl) {
+        throw new Error("STRIPE_API_KEY and STRIPE_SUBSCRIPTIONS_URL must be set");
+    }
 
     const payload = {
         customer: customerId,
         items: [{ plan: planId }],
-        amount: amount,
+        amount,
         currency: "usd",
     };
 
-    const result = await fetch(url, {
+    const response = await fetch(stripeUrl, {
         method: "POST",
-        headers: { Authorization: "Bearer " + STRIPE_KEY },
+        headers: { Authorization: `Bearer ${stripeKey}` },
         body: JSON.stringify(payload),
     });
-    return result.json();
-}
-
-export function logBilling(event, data) {
-    console.log("billing event: " + event + " " + JSON.stringify(data));
+    if (!response.ok) {
+        throw new Error(`Stripe subscription failed: ${response.status} ${response.statusText}`);
+    }
+    return response.json();
 }
