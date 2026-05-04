@@ -2,9 +2,9 @@ name: Code Review
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
   pull_request:
-    branches: [main]
+    branches: [main, staging]
 
 permissions:
   contents: read
@@ -19,18 +19,31 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - name: Clone guidelines
-        run: git clone "$GUIDELINES_REPO_URL" /tmp/guidelines
+        run: git clone --depth 1 --branch "${GUIDELINES_REPO_BRANCH:-main}" "$GUIDELINES_REPO_URL" /tmp/guidelines
         env:
           GUIDELINES_REPO_URL: ${{ secrets.GUIDELINES_REPO_URL }}
+          GUIDELINES_REPO_BRANCH: ${{ secrets.GUIDELINES_REPO_BRANCH }}
+
+      - name: Install opencode
+        run: |
+          curl -fsSL https://opencode.ai/install | bash
+          echo "$HOME/.opencode/bin" >> "$GITHUB_PATH"
 
       - name: Run code review
-        run: cd /tmp/guidelines && bash ci/scripts/run-review.sh
+        run: PYTHONPATH=/tmp/guidelines/review python3 -m runner
         env:
           REVIEW_LLM_PROVIDER: ${{ secrets.REVIEW_LLM_PROVIDER }}
           REVIEW_LLM_API_KEY: ${{ secrets.REVIEW_LLM_API_KEY }}
+          REVIEW_LLM_MODEL: ${{ secrets.REVIEW_LLM_MODEL }}
           REVIEW_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GUIDELINES_REPO_PATH: /tmp/guidelines
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
 
       - uses: actions/upload-artifact@v4
         if: always()
