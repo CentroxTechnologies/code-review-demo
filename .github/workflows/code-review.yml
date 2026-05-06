@@ -40,7 +40,7 @@ jobs:
           REVIEW_LLM_PROVIDER: ${{ secrets.REVIEW_LLM_PROVIDER }}
           REVIEW_LLM_API_KEY: ${{ secrets.REVIEW_LLM_API_KEY }}
           REVIEW_LLM_MODEL: ${{ secrets.REVIEW_LLM_MODEL }}
-          REVIEW_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REVIEW_GITHUB_TOKEN: ${{ secrets.REVIEW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           GUIDELINES_REPO_PATH: /tmp/guidelines
           GITHUB_BASE_REF: ${{ github.base_ref }}
           GITHUB_EVENT_BEFORE: ${{ github.event.before }}
